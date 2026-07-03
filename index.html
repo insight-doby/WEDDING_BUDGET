@@ -213,6 +213,55 @@
   }
 
   footer{text-align:center;padding:24px;font-size:11px;color:var(--ink-3);}
+
+  /* ===== Toast ===== */
+  .toast{
+    position:fixed;left:50%;bottom:76px;
+    transform:translateX(-50%) translateY(12px);
+    background:var(--ink);color:#fff;
+    font-size:13px;font-weight:600;
+    padding:11px 20px;border-radius:999px;
+    opacity:0;pointer-events:none;
+    transition:opacity 0.2s ease, transform 0.2s ease;
+    z-index:200;box-shadow:0 6px 16px rgba(0,0,0,0.18);
+    max-width:88%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .toast.success{background:var(--green-dark);}
+  .toast.error{background:var(--red);}
+  .toast.warn{background:var(--orange);}
+  @media(min-width:761px){ .toast{bottom:24px;} }
+
+  /* ===== Person input (나/배우자) ===== */
+  .person-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .person-input{
+    display:flex;align-items:stretch;
+    border:1.5px solid var(--line);border-radius:10px;
+    overflow:hidden;background:var(--card);
+    transition:border-color 0.15s;
+  }
+  .person-input:focus-within{border-color:var(--green);}
+  .person-input .p-tag{
+    flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:800;padding:0 10px;
+    white-space:nowrap;
+  }
+  .person-input.me .p-tag{background:var(--green-pale);color:var(--green-dark);}
+  .person-input.spouse .p-tag{background:#FCE9F1;color:#D6336C;}
+  .person-input input{
+    flex:1;min-width:0;border:none;background:transparent;
+    padding:12px 4px 12px 10px;font-size:15px;font-weight:600;font-family:inherit;color:var(--ink);
+  }
+  .person-input input:focus{outline:none;}
+  .person-input .p-unit{
+    flex:0 0 auto;display:flex;align-items:center;
+    font-size:12px;color:var(--ink-3);padding-right:10px;font-weight:500;
+  }
+  .cat-subtotal{
+    display:flex;justify-content:flex-end;
+    font-size:12px;color:var(--ink-3);margin-top:6px;padding:0 2px;
+  }
+  .cat-subtotal b{color:var(--ink-2);font-weight:700;margin-left:4px;}
 </style>
 </head>
 <body>
@@ -355,11 +404,11 @@
     <div class="section-title">세후 월 소득 <span style="font-weight:400;color:var(--ink-3);font-size:12px;">· 실수령액 기준</span></div>
     <div class="card">
       <div class="field">
-        <label>나의 소득</label>
+        <label>도비 소득</label>
         <div class="unit-wrap"><input type="number" id="incMe" inputmode="numeric"><span class="unit">만원</span></div>
       </div>
       <div class="field">
-        <label>배우자 소득</label>
+        <label>엥주 소득</label>
         <div class="unit-wrap"><input type="number" id="incSpouse" inputmode="numeric"><span class="unit">만원</span></div>
       </div>
       <div class="inline-result"><span>합산 소득</span><b id="incTotal">0만원</b></div>
@@ -367,6 +416,12 @@
 
     <div class="section-title">결혼 후 예상 월 고정비 <span style="font-weight:400;color:var(--ink-3);font-size:12px;">· 대략치로 시작해도 돼요</span></div>
     <div class="card" id="fixedInputs"></div>
+
+    <div class="section-title">기타 정기지출 <span style="font-weight:400;color:var(--ink-3);font-size:12px;">· 구독료, 용돈 등 항목별로</span></div>
+    <div class="card">
+      <div id="fixedEtcList"></div>
+      <button class="btn" id="addEtcBtn" style="margin-top:14px;">+ 항목 추가</button>
+    </div>
   </section>
 
   <!-- ============ LOAN ============ -->
@@ -425,6 +480,8 @@
 
 </main>
 
+<div id="toast" class="toast"></div>
+
 <footer>우리 결혼 예산 · 두 사람이 같은 구글시트를 바라봐요</footer>
 
 <script>
@@ -433,12 +490,11 @@ const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKsFWeIdTKW
 let SCRIPT_URL = localStorage.getItem('wb_scriptUrl') || DEFAULT_SCRIPT_URL;
 const SPEND_CATS = ['집(계약금 등)','결혼식','신혼여행','가전가구','자동차','기타'];
 const FIXED_CATS = [
-  {key:'housing', name:'주거관리비', hint:'관리비·공과금', def:25},
-  {key:'telecom', name:'통신비', hint:'휴대폰·인터넷', def:15},
-  {key:'insurance', name:'보험료', hint:'두 사람 합산', def:30},
-  {key:'food', name:'식비', hint:'최소 필수 기준', def:60},
-  {key:'transport', name:'교통비', hint:'대중교통·주유', def:20},
-  {key:'etc', name:'기타 정기지출', hint:'구독·용돈 등', def:20},
+  {key:'housing', name:'주거관리비', hint:'관리비·공과금', defMe:15, defSpouse:10},
+  {key:'telecom', name:'통신비', hint:'휴대폰·인터넷', defMe:8, defSpouse:7},
+  {key:'insurance', name:'보험료', hint:'각자 가입한 보험', defMe:15, defSpouse:15},
+  {key:'food', name:'식비', hint:'최소 필수 기준', defMe:30, defSpouse:30},
+  {key:'transport', name:'교통비', hint:'대중교통·주유', defMe:10, defSpouse:10},
 ];
 
 let S = {
@@ -447,6 +503,7 @@ let S = {
   spend: {},
   income: {me:0, spouse:0},
   fixed: {},
+  fixedEtc: [],
   loan: {amount:19200, rate:2.0, years:20},
 };
 let saveTimer = null;
@@ -471,7 +528,22 @@ function ensureDefaults(){
   SPEND_CATS.forEach(c=>{ if(S.spend[c]===undefined) S.spend[c]=0; });
   if(!S.income) S.income = {me:0, spouse:0};
   if(!S.fixed) S.fixed = {};
-  FIXED_CATS.forEach(f=>{ if(S.fixed[f.key]===undefined) S.fixed[f.key]=f.def; });
+  FIXED_CATS.forEach(f=>{
+    const cur = S.fixed[f.key];
+    if(cur===undefined){
+      S.fixed[f.key] = {me:f.defMe, spouse:f.defSpouse};
+    } else if(typeof cur === 'number'){
+      // 예전 버전(단일 숫자) 데이터 마이그레이션: 절반씩 나눠 배정
+      S.fixed[f.key] = {me: Math.round(cur/2), spouse: Math.round(cur/2)};
+    }
+  });
+  if(!S.fixedEtc) S.fixedEtc = [];
+  if(S.fixedEtc.length===0 && S.fixed.etc){
+    // 예전 '기타 정기지출' 단일 값을 항목 하나로 이전
+    const oldEtc = num(S.fixed.etc);
+    if(oldEtc>0) S.fixedEtc.push({name:'기타', amount:oldEtc});
+    delete S.fixed.etc;
+  }
   if(!S.loan) S.loan = {amount:19200, rate:2.0, years:20};
 }
 
@@ -488,7 +560,9 @@ function calc(){
   const grossAsset = S.assets.filter(a=>a.type!=='부채').reduce((s,a)=>s+a.amount,0);
   const remaining = grossAsset - spentTotal;
   const incomeTotal = num(S.income.me)+num(S.income.spouse);
-  const fixedTotal = FIXED_CATS.reduce((s,f)=>s+num(S.fixed[f.key]),0);
+  const fixedCatTotal = FIXED_CATS.reduce((s,f)=>s+num(S.fixed[f.key]?.me)+num(S.fixed[f.key]?.spouse),0);
+  const fixedEtcTotal = S.fixedEtc.reduce((s,e)=>s+num(e.amount),0);
+  const fixedTotal = fixedCatTotal + fixedEtcTotal;
   const monthlyFree = incomeTotal - fixedTotal;
 
   // loan: 원리금균등 (amortized)
@@ -659,17 +733,95 @@ function initInputs(){
 
   const fx = document.getElementById('fixedInputs');
   fx.innerHTML = FIXED_CATS.map(f=>`
-    <div class="field"><label>${f.name} <span class="hint">· ${f.hint}</span></label>
-    <div class="unit-wrap"><input type="number" data-fixed="${f.key}" value="${S.fixed[f.key]}" inputmode="numeric"><span class="unit">만원</span></div></div>
-  `).join('') + `<div class="inline-result"><span>고정비 합계</span><b id="fixedTotal">0만원</b></div>`;
+    <div class="field">
+      <label>${f.name} <span class="hint">· ${f.hint}</span></label>
+      <div class="person-grid">
+        <div class="person-input me">
+          <span class="p-tag">도비</span>
+          <input type="number" data-fixed="${f.key}" data-who="me" value="${S.fixed[f.key].me}" inputmode="numeric">
+          <span class="p-unit">만원</span>
+        </div>
+        <div class="person-input spouse">
+          <span class="p-tag">엥주</span>
+          <input type="number" data-fixed="${f.key}" data-who="spouse" value="${S.fixed[f.key].spouse}" inputmode="numeric">
+          <span class="p-unit">만원</span>
+        </div>
+      </div>
+      <div class="cat-subtotal">소계 <b data-subtotal="${f.key}">0만원</b></div>
+    </div>
+  `).join('') + `<div class="inline-result"><span>카테고리 고정비 합계</span><b id="fixedCatTotal">0만원</b></div>`;
   fx.querySelectorAll('[data-fixed]').forEach(inp=>{
-    inp.addEventListener('input', e=>{ S.fixed[e.target.dataset.fixed]=num(e.target.value); renderFixedTotal(); render(); persist(); });
+    inp.addEventListener('input', e=>{
+      S.fixed[e.target.dataset.fixed][e.target.dataset.who] = num(e.target.value);
+      renderFixedTotal(); render(); persist();
+      renderFixedTotal(); render(); persist();
+    });
   });
   renderFixedTotal();
+  renderEtcList();
 }
+let editingEtcIdx = null;
+function renderEtcList(){
+  const el = document.getElementById('fixedEtcList');
+  if(S.fixedEtc.length===0){
+    el.innerHTML = `<div class="card-sub" style="padding:6px 0;">아직 등록된 항목이 없어요. 아래 버튼으로 추가해보세요.</div>`;
+  } else {
+    el.innerHTML = '';
+  }
+  S.fixedEtc.forEach((e,i)=>{
+    const row = document.createElement('div');
+    row.className='item-row';
+    row.innerHTML = `
+      <div class="info" style="cursor:pointer;">
+        <div class="nm">${e.name||'이름 없음'}</div>
+      </div>
+      <div class="val">${fmt(e.amount)}</div>
+    `;
+    row.querySelector('.info').addEventListener('click', ()=>{ editingEtcIdx = editingEtcIdx===i?null:i; renderEtcList(); });
+    el.appendChild(row);
+
+    if(editingEtcIdx===i){
+      const panel = document.createElement('div');
+      panel.className='edit-panel';
+      panel.innerHTML = `
+        <div class="row2" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="field"><label>이름</label><input type="text" value="${e.name||''}" data-ef="name"></div>
+          <div class="field"><label>금액(만원)</label><input type="number" value="${e.amount||0}" data-ef="amount" inputmode="numeric"></div>
+        </div>
+        <div class="actions">
+          <button class="btn danger-text" data-eact="del">삭제</button>
+          <button class="btn small primary" data-eact="done">완료</button>
+        </div>`;
+      panel.querySelectorAll('[data-ef]').forEach(inp=>{
+        inp.addEventListener('input', ev=>{
+          const f = ev.target.dataset.ef;
+          S.fixedEtc[i][f] = f==='amount' ? num(ev.target.value) : ev.target.value;
+          renderFixedTotal(); render(); persist();
+        });
+      });
+      panel.querySelector('[data-eact=del]').addEventListener('click', ()=>{
+        S.fixedEtc.splice(i,1); editingEtcIdx=null; renderFixedTotal(); render(); renderEtcList(); persist();
+      });
+      panel.querySelector('[data-eact=done]').addEventListener('click', ()=>{
+        editingEtcIdx=null; renderEtcList();
+      });
+      el.appendChild(panel);
+    }
+  });
+}
+document.getElementById('addEtcBtn').addEventListener('click', ()=>{
+  S.fixedEtc.push({name:'새 항목', amount:0});
+  editingEtcIdx = S.fixedEtc.length-1;
+  renderEtcList(); renderFixedTotal(); render(); persist();
+});
 function renderFixedTotal(){
-  const t = FIXED_CATS.reduce((s,f)=>s+num(S.fixed[f.key]),0);
-  const el = document.getElementById('fixedTotal');
+  FIXED_CATS.forEach(f=>{
+    const sub = num(S.fixed[f.key]?.me)+num(S.fixed[f.key]?.spouse);
+    const subEl = document.querySelector(`[data-subtotal="${f.key}"]`);
+    if(subEl) subEl.textContent = fmt(sub);
+  });
+  const t = FIXED_CATS.reduce((s,f)=>s+num(S.fixed[f.key]?.me)+num(S.fixed[f.key]?.spouse),0);
+  const el = document.getElementById('fixedCatTotal');
   if(el) el.textContent = fmt(t);
 }
 
@@ -718,7 +870,8 @@ async function loadFromSheet(){
 
 function persist(){
   saveLocal();
-  if(!SCRIPT_URL) return;
+  if(!SCRIPT_URL){ showToast('이 기기에만 저장돼요 · 설정에서 연동하세요','warn',2400); return; }
+  showToast('저장 중…','default', 999999);
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async ()=>{
     setSync('loading','저장 중…');
@@ -726,8 +879,23 @@ function persist(){
       const data = { headers:['json'], rows:[{json: JSON.stringify(S)}] };
       await fetch(SCRIPT_URL, {method:'POST', body:new URLSearchParams({action:'write', sheet:'WeddingBudget', data:JSON.stringify(data)})});
       setSync('on','연결됨 · 자동저장');
-    }catch(e){ setSync('off','저장 실패'); }
+      showToast('✓ 저장됨 · 시트에 반영됐어요','success', 1600);
+    }catch(e){
+      setSync('off','저장 실패');
+      showToast('저장 실패했어요 · 다시 시도해주세요','error', 3000);
+    }
   }, 800);
+}
+
+let toastTimer = null;
+function showToast(text, type='default', duration=1800){
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  if(duration < 99999){
+    toastTimer = setTimeout(()=>{ el.classList.remove('show'); }, duration);
+  }
 }
 
 /* ================= SETTINGS ================= */
@@ -740,7 +908,7 @@ document.getElementById('connectBtn').addEventListener('click', ()=>{
 document.getElementById('resetBtn').addEventListener('click', ()=>{
   if(confirm('이 기기에 저장된 데이터를 초기화할까요? 구글시트 데이터는 유지돼요.')){
     localStorage.removeItem('wb_state');
-    S = {assets:defaultAssets(), house:{cap:24000,rate:80,reserve:400}, spend:{}, income:{me:0,spouse:0}, fixed:{}, loan:{amount:19200,rate:2.0,years:20}};
+    S = {assets:defaultAssets(), house:{cap:24000,rate:80,reserve:400}, spend:{}, income:{me:0,spouse:0}, fixed:{}, fixedEtc:[], loan:{amount:19200,rate:2.0,years:20}};
     ensureDefaults(); initInputs(); render(); persist();
   }
 });
