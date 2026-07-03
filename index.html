@@ -402,8 +402,9 @@
   <section id="tab-settings">
     <div class="section-title">구글시트 연동</div>
     <div class="card">
+      <div class="card-sub" style="margin-bottom:12px;">기본 구글시트에 이미 연결되어 있어요. 다른 시트로 바꾸고 싶을 때만 아래에 새 URL을 입력하세요.</div>
       <div class="field">
-        <label>Apps Script 웹앱 URL <span class="hint">· README 안내대로 배포 후 붙여넣기</span></label>
+        <label>Apps Script 웹앱 URL</label>
         <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
       </div>
       <button class="btn primary" id="connectBtn">저장하고 연결</button>
@@ -428,7 +429,8 @@
 
 <script>
 /* ================= STATE ================= */
-let SCRIPT_URL = localStorage.getItem('wb_scriptUrl') || '';
+const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKsFWeIdTKW7S4HG_IulVVxF274Pbkr7xltWyroqeFGz0XkJDU3GmrY57Wb-lwyLxAJA/exec';
+let SCRIPT_URL = localStorage.getItem('wb_scriptUrl') || DEFAULT_SCRIPT_URL;
 const SPEND_CATS = ['집(계약금 등)','결혼식','신혼여행','가전가구','자동차','기타'];
 const FIXED_CATS = [
   {key:'housing', name:'주거관리비', hint:'관리비·공과금', def:25},
