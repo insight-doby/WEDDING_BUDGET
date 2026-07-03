@@ -330,6 +330,62 @@
   .cal-dots i{width:5px;height:5px;border-radius:50%;background:var(--green);display:block;}
   .cal-dots i.overdue{background:var(--red);}
   .cal-dots i.done{background:#C9CED6;}
+
+  /* ===== Wedding progress road ===== */
+  .progress-road{position:relative;height:200px;display:flex;justify-content:center;}
+  .road-track{
+    position:absolute;left:50%;top:0;bottom:0;width:6px;
+    transform:translateX(-50%);
+    background:repeating-linear-gradient(to bottom, var(--line) 0 8px, transparent 8px 14px);
+    border-radius:3px;
+  }
+  .road-char{
+    position:absolute;left:50%;top:4%;
+    transform:translate(-50%,-50%);
+    transition:top 0.8s cubic-bezier(.34,1.4,.5,1);
+    z-index:2;
+  }
+  .road-char.walking .leg-l{animation:legswing 0.35s ease-in-out infinite alternate;}
+  .road-char.walking .leg-r{animation:legswing2 0.35s ease-in-out infinite alternate;}
+  .road-char.walking .leg-l2{animation:legswing 0.35s ease-in-out infinite alternate;}
+  .road-char.walking .leg-r2{animation:legswing2 0.35s ease-in-out infinite alternate;}
+  @keyframes legswing{0%{transform:rotate(-16deg);}100%{transform:rotate(16deg);}}
+  @keyframes legswing2{0%{transform:rotate(16deg);}100%{transform:rotate(-16deg);}}
+  .road-labels{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-3);font-weight:600;margin-top:6px;}
+  .road-labels #roadPercent{color:var(--green-dark);font-weight:800;}
+
+  /* ===== Celebration overlay ===== */
+  .celebrate-overlay{
+    position:fixed;inset:0;z-index:1000;
+    background:linear-gradient(180deg,#FFF6E9 0%,#FDEEF3 55%,#EAF6EE 100%);
+    display:none;flex-direction:column;align-items:center;justify-content:center;
+    overflow:hidden;padding:24px;text-align:center;
+  }
+  .celebrate-overlay.show{display:flex;}
+  .celebrate-close{
+    position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;
+    background:rgba(255,255,255,0.8);border:none;font-size:18px;font-weight:700;color:var(--ink-2);
+    cursor:pointer;z-index:5;
+  }
+  .celebrate-bell{font-size:40px;animation:bellswing 0.6s ease-in-out infinite;transform-origin:top center;}
+  @keyframes bellswing{0%,100%{transform:rotate(-14deg);}50%{transform:rotate(14deg);}}
+  .celebrate-couple{display:flex;align-items:flex-end;gap:2px;margin:10px 0 6px;position:relative;z-index:3;}
+  .celebrate-title{font-size:19px;font-weight:900;color:var(--ink);margin-top:6px;position:relative;z-index:3;}
+  .celebrate-sub{font-size:13px;color:var(--ink-2);margin-top:6px;position:relative;z-index:3;}
+  .celebrate-hint{font-size:11.5px;color:var(--ink-3);margin-top:22px;position:relative;z-index:3;}
+  .guest-row{display:flex;justify-content:center;gap:14px;margin:6px 0;position:relative;z-index:2;}
+  .guest{display:flex;flex-direction:column;align-items:center;animation:guestcheer 0.9s ease-in-out infinite;}
+  .guest:nth-child(2n){animation-delay:0.15s;}
+  .guest:nth-child(3n){animation-delay:0.3s;}
+  @keyframes guestcheer{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+  .confetti-piece{
+    position:absolute;top:-20px;width:8px;height:14px;opacity:0.9;
+    animation:confettifall linear infinite;
+  }
+  @keyframes confettifall{
+    0%{transform:translateY(-20px) rotate(0deg);}
+    100%{transform:translateY(110vh) rotate(540deg);}
+  }
 </style>
 </head>
 <body>
@@ -447,6 +503,44 @@
 
     <div class="card">
       <div class="card-sub">💒 결혼식은 <b style="color:var(--ink);">2026년 12월 5일(토) 오후 3시 40분</b>으로 고정되어 있어요.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label" style="margin-bottom:10px;">우리의 웨딩로드</div>
+      <div class="progress-road" id="progressRoad">
+        <div class="road-track"></div>
+        <div class="road-char" id="roadChar">
+          <svg viewBox="0 0 40 46" width="34" height="39" aria-hidden="true">
+            <ellipse cx="20" cy="43" rx="13" ry="2.6" fill="rgba(0,0,0,0.15)"/>
+            <g class="leg-l" style="transform-origin:11px 30px;">
+              <rect x="8.5" y="30" width="4.5" height="11" rx="2" fill="#2C3639"/>
+            </g>
+            <g class="leg-r" style="transform-origin:15px 30px;">
+              <rect x="13" y="30" width="4.5" height="11" rx="2" fill="#191F28"/>
+            </g>
+            <rect x="6" y="16" width="15" height="16" rx="4" fill="#2C3639"/>
+            <rect x="12.7" y="18" width="2.2" height="10" fill="#191F28"/>
+            <circle cx="13.8" cy="12" r="6" fill="#FFDFC0"/>
+            <path d="M8 12 Q8.5 6 13.8 6 Q19.5 6 19.8 12 Q16 9.5 13.5 10.3 Q10.5 11 8 12Z" fill="#4A3222"/>
+            <rect x="11.6" y="19.5" width="4.4" height="3" fill="#F04452"/>
+            <g class="leg-r2" style="transform-origin:27px 30px;">
+              <rect x="24.5" y="30" width="4.5" height="11" rx="2" fill="#FBD5E3"/>
+            </g>
+            <g class="leg-l2" style="transform-origin:31px 30px;">
+              <rect x="29" y="30" width="4.5" height="11" rx="2" fill="#F7C1D6"/>
+            </g>
+            <path d="M22 32 L28 17 Q29.5 15 31 17 L37 32 Z" fill="#FFFFFF" stroke="#EFE3E9" stroke-width="0.5"/>
+            <circle cx="28.6" cy="12.5" r="6" fill="#FFDFC0"/>
+            <path d="M23 12.5 Q22.5 6 28.6 6 Q35 6 35 13 Q31 9.8 28.5 10.6 Q25.5 11.4 23 12.5Z" fill="#B5651D"/>
+            <path d="M32.5 10 Q37 11 36 18 Q34.5 14 32.5 12Z" fill="#F3F0EC" opacity="0.85"/>
+            <circle cx="21" cy="27" r="1.6" fill="#F04452"/>
+            <circle cx="22.6" cy="29" r="1.3" fill="#FF8FAE"/>
+            <circle cx="19.6" cy="29.3" r="1.3" fill="#F04452"/>
+            <circle cx="21.3" cy="31" r="1.1" fill="#FBD5E3"/>
+          </svg>
+        </div>
+      </div>
+      <div class="road-labels"><span>시작</span><span id="roadPercent">0%</span><span>💒 결혼식</span></div>
     </div>
 
     <div id="rmUpcoming"></div>
@@ -627,6 +721,26 @@
 </main>
 
 <div id="toast" class="toast"></div>
+
+<div class="celebrate-overlay" id="celebrateOverlay">
+  <button class="celebrate-close" id="celebrateCloseBtn" aria-label="닫기">✕</button>
+  <div id="confettiLayer"></div>
+  <div class="celebrate-bell">🔔</div>
+  <div class="guest-row">
+    <svg width="26" height="34" viewBox="0 0 26 34"><ellipse cx="13" cy="32" rx="10" ry="2" fill="rgba(0,0,0,0.1)"/><rect x="7" y="14" width="12" height="16" rx="5" fill="#6B8E6B"/><circle cx="13" cy="9" r="6" fill="#FFDFC0"/><path d="M8 9 Q8 4 13 4 Q18 4 18 9 Q14 7 13 7.5 Q11 8 8 9Z" fill="#4A3222"/><path d="M9 15 L4 6" stroke="#6B8E6B" stroke-width="3" stroke-linecap="round"/><path d="M17 15 L22 6" stroke="#6B8E6B" stroke-width="3" stroke-linecap="round"/></svg>
+    <svg width="26" height="34" viewBox="0 0 26 34"><ellipse cx="13" cy="32" rx="10" ry="2" fill="rgba(0,0,0,0.1)"/><rect x="7" y="14" width="12" height="16" rx="5" fill="#D6336C"/><circle cx="13" cy="9" r="6" fill="#FFDFC0"/><path d="M8 9 Q8 4 13 4 Q18 4 18 9 Q14 7 13 7.5 Q11 8 8 9Z" fill="#B5651D"/><path d="M9 15 L4 6" stroke="#D6336C" stroke-width="3" stroke-linecap="round"/><path d="M17 15 L22 6" stroke="#D6336C" stroke-width="3" stroke-linecap="round"/></svg>
+  </div>
+  <div class="celebrate-couple">
+    <svg viewBox="0 0 40 46" width="58" height="67"><ellipse cx="20" cy="43" rx="13" ry="2.6" fill="rgba(0,0,0,0.15)"/><rect x="8.5" y="30" width="4.5" height="11" rx="2" fill="#2C3639"/><rect x="13" y="30" width="4.5" height="11" rx="2" fill="#191F28"/><rect x="6" y="16" width="15" height="16" rx="4" fill="#2C3639"/><rect x="12.7" y="18" width="2.2" height="10" fill="#191F28"/><circle cx="13.8" cy="12" r="6" fill="#FFDFC0"/><path d="M8 12 Q8.5 6 13.8 6 Q19.5 6 19.8 12 Q16 9.5 13.5 10.3 Q10.5 11 8 12Z" fill="#4A3222"/><rect x="11.6" y="19.5" width="4.4" height="3" fill="#F04452"/><rect x="24.5" y="30" width="4.5" height="11" rx="2" fill="#FBD5E3"/><rect x="29" y="30" width="4.5" height="11" rx="2" fill="#F7C1D6"/><path d="M22 32 L28 17 Q29.5 15 31 17 L37 32 Z" fill="#FFFFFF" stroke="#EFE3E9" stroke-width="0.5"/><circle cx="28.6" cy="12.5" r="6" fill="#FFDFC0"/><path d="M23 12.5 Q22.5 6 28.6 6 Q35 6 35 13 Q31 9.8 28.5 10.6 Q25.5 11.4 23 12.5Z" fill="#B5651D"/><path d="M32.5 10 Q37 11 36 18 Q34.5 14 32.5 12Z" fill="#F3F0EC" opacity="0.85"/><circle cx="21" cy="27" r="1.6" fill="#F04452"/><circle cx="22.6" cy="29" r="1.3" fill="#FF8FAE"/><circle cx="19.6" cy="29.3" r="1.3" fill="#F04452"/><circle cx="21.3" cy="31" r="1.1" fill="#FBD5E3"/></svg>
+  </div>
+  <div class="guest-row">
+    <svg width="26" height="34" viewBox="0 0 26 34"><ellipse cx="13" cy="32" rx="10" ry="2" fill="rgba(0,0,0,0.1)"/><rect x="7" y="14" width="12" height="16" rx="5" fill="#D4A24C"/><circle cx="13" cy="9" r="6" fill="#FFDFC0"/><path d="M8 9 Q8 4 13 4 Q18 4 18 9 Q14 7 13 7.5 Q11 8 8 9Z" fill="#4A3222"/><path d="M9 15 L4 6" stroke="#D4A24C" stroke-width="3" stroke-linecap="round"/><path d="M17 15 L22 6" stroke="#D4A24C" stroke-width="3" stroke-linecap="round"/></svg>
+    <svg width="26" height="34" viewBox="0 0 26 34"><ellipse cx="13" cy="32" rx="10" ry="2" fill="rgba(0,0,0,0.1)"/><rect x="7" y="14" width="12" height="16" rx="5" fill="#4E8FD9"/><circle cx="13" cy="9" r="6" fill="#FFDFC0"/><path d="M8 9 Q8 4 13 4 Q18 4 18 9 Q14 7 13 7.5 Q11 8 8 9Z" fill="#B5651D"/><path d="M9 15 L4 6" stroke="#4E8FD9" stroke-width="3" stroke-linecap="round"/><path d="M17 15 L22 6" stroke="#4E8FD9" stroke-width="3" stroke-linecap="round"/></svg>
+  </div>
+  <div class="celebrate-title">🎉 결혼 준비 완료!</div>
+  <div class="celebrate-sub">축하해요, 도비 & 엥주 💍 이제 결혼식만 남았어요</div>
+  <div class="celebrate-hint">화면을 탭하면 닫혀요</div>
+</div>
 
 <footer>우리 결혼 예산 · 두 사람이 같은 구글시트를 바라봐요</footer>
 
@@ -1098,7 +1212,65 @@ function renderRoadmap(){
   document.getElementById('rmCalendar').style.display = rmView==='calendar'?'block':'none';
   document.getElementById('viewTimelineBtn').classList.toggle('active', rmView==='timeline');
   document.getElementById('viewCalendarBtn').classList.toggle('active', rmView==='calendar');
+
+  renderProgressRoad();
 }
+
+let lastRoadPercent = null;
+function renderProgressRoad(){
+  const total = S.tasks.length;
+  const done = S.tasks.filter(t=>t.done).length;
+  const pct = total>0 ? Math.round(done/total*100) : 0;
+  document.getElementById('roadPercent').textContent = pct+'%';
+  const charEl = document.getElementById('roadChar');
+  const topPct = Math.min(96, Math.max(4, pct));
+  charEl.style.top = topPct+'%';
+
+  if(lastRoadPercent!==null && pct!==lastRoadPercent){
+    charEl.classList.add('walking');
+    clearTimeout(charEl._walkTimer);
+    charEl._walkTimer = setTimeout(()=>charEl.classList.remove('walking'), 700);
+  }
+  lastRoadPercent = pct;
+
+  return pct;
+}
+
+/* ---- Celebration overlay ---- */
+function checkCelebration(){
+  const total = S.tasks.length;
+  const done = S.tasks.filter(t=>t.done).length;
+  if(total>0 && done===total){
+    showCelebration();
+  }
+}
+function showCelebration(){
+  const ov = document.getElementById('celebrateOverlay');
+  if(ov.classList.contains('show')) return;
+  spawnConfetti();
+  ov.classList.add('show');
+}
+function hideCelebration(){
+  document.getElementById('celebrateOverlay').classList.remove('show');
+  document.getElementById('confettiLayer').innerHTML = '';
+}
+function spawnConfetti(){
+  const layer = document.getElementById('confettiLayer');
+  layer.innerHTML = '';
+  const colors = ['#03C75A','#FF8FAE','#D4A24C','#4E8FD9','#F04452','#8B5FBF'];
+  for(let i=0;i<32;i++){
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random()*100+'%';
+    el.style.background = colors[i%colors.length];
+    el.style.animationDuration = (2.2+Math.random()*1.8)+'s';
+    el.style.animationDelay = (Math.random()*1.5)+'s';
+    el.style.borderRadius = Math.random()>0.5 ? '50%' : '2px';
+    layer.appendChild(el);
+  }
+}
+document.getElementById('celebrateOverlay').addEventListener('click', hideCelebration);
+document.getElementById('celebrateCloseBtn').addEventListener('click', e=>{ e.stopPropagation(); hideCelebration(); });
 
 let pastExpanded = false;
 function renderTimeline(){
@@ -1199,6 +1371,7 @@ function bindTaskEvents(scope){
       const t = S.tasks.find(x=>x.id===dot.dataset.toggle);
       t.done = !t.done;
       renderRoadmap(); persist();
+      if(t.done) checkCelebration();
     });
   });
   scope.querySelectorAll('[data-edit]').forEach(h=>{
@@ -1318,6 +1491,7 @@ function goTab(name){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
   document.querySelectorAll('main > section').forEach(s=>s.classList.toggle('active', s.id==='tab-'+name));
   window.scrollTo({top:0});
+  if(name==='roadmap') checkCelebration();
 }
 document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click', ()=>goTab(b.dataset.tab)));
 document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click', ()=>goTab(el.dataset.go)));
