@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>도비♥엥주 결혼준비</title>
+<title>우리 결혼 예산</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -236,6 +236,48 @@
     display:flex;align-items:center;justify-content:center;
   }
   .toast .wico svg{width:14px;height:14px;}
+
+  /* ===== Who overlay ===== */
+  .who-overlay{
+    position:fixed;inset:0;z-index:900;
+    background:rgba(25,31,40,0.5);backdrop-filter:blur(3px);
+    display:none;align-items:center;justify-content:center;padding:24px;
+  }
+  .who-overlay.show{display:flex;}
+  .who-card{
+    background:var(--card);border-radius:16px;padding:26px 22px;
+    max-width:320px;width:100%;text-align:center;
+    box-shadow:0 12px 40px rgba(0,0,0,0.25);
+  }
+  .who-btn{flex:1;font-size:15px;font-weight:800;padding:14px;}
+  .who-btn.me{background:var(--green-pale);color:var(--green-dark);}
+  .who-btn.spouse{background:#FCE9F1;color:#D6336C;}
+
+  /* ===== Change banner & log ===== */
+  .change-banner{
+    display:flex;align-items:center;gap:10px;
+    background:var(--card);border-radius:var(--radius);
+    padding:13px 16px;margin-bottom:12px;box-shadow:var(--shadow);
+    border-left:4px solid var(--green);
+    cursor:pointer;font-size:13px;font-weight:600;
+  }
+  .change-banner .cb-count{
+    background:var(--green);color:#fff;font-size:11px;font-weight:800;
+    min-width:20px;height:20px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;padding:0 6px;
+  }
+  .change-log-list{margin-bottom:12px;}
+  .change-log-item{
+    display:flex;gap:10px;align-items:flex-start;
+    padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;
+  }
+  .change-log-item:last-child{border-bottom:none;}
+  .change-log-item .who-tag{
+    flex-shrink:0;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;
+  }
+  .change-log-item .who-tag.me{background:var(--green-pale);color:var(--green-dark);}
+  .change-log-item .who-tag.spouse{background:#FCE9F1;color:#D6336C;}
+  .change-log-item .cl-time{flex-shrink:0;font-size:11px;color:var(--ink-3);margin-left:auto;white-space:nowrap;}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   .toast.success{background:var(--green-dark);}
   .toast.error{background:var(--red);}
@@ -444,6 +486,8 @@
 
   <!-- ============ HOME (Dashboard) ============ -->
   <section id="tab-home" class="active">
+    <div id="changeBanner"></div>
+    <div id="changeLogList" class="change-log-list" style="display:none;"></div>
     <div class="hero">
       <div class="card-label">결혼 준비에 쓸 수 있는 남은 돈</div>
       <div class="big-num" id="homeRemaining">0만원</div>
@@ -512,8 +556,37 @@
       <div class="card-sub"><span class="wico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="12" r="4"/><circle cx="12.5" cy="12" r="4"/><path d="M8 5.5L10 3l2 2.5"/></svg></span> 결혼식은 <b style="color:var(--ink);">2026년 12월 5일(토) 오후 3시 40분</b>으로 고정되어 있어요.</div>
     </div>
 
+
+    <div id="rmUpcoming"></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:20px 4px 10px;">
+      <div class="section-title" style="margin:0;">전체 일정</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn small view-btn active" data-view="timeline" id="viewTimelineBtn">타임라인</button>
+        <button class="btn small view-btn" data-view="calendar" id="viewCalendarBtn">달력</button>
+      </div>
+    </div>
+
+    <!-- Timeline view -->
+    <div id="rmTimeline" class="card" style="padding:20px 16px;"></div>
+
+    <!-- Calendar view -->
+    <div id="rmCalendar" style="display:none;">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <button class="btn small" id="calPrev">◀</button>
+          <div style="font-size:15px;font-weight:900;" id="calTitle">-</div>
+          <button class="btn small" id="calNext">▶</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+      <div id="calDayTasks"></div>
+    </div>
+
+    <button class="btn primary" id="addTaskBtn" style="margin-top:4px;">+ 일정 추가</button>
+
+    <div class="section-title" style="margin-top:24px;">우리의 웨딩로드</div>
     <div class="card">
-      <div class="card-label" style="margin-bottom:10px;">우리의 웨딩로드</div>
       <div class="progress-road" id="progressRoad">
         <div class="road-track"></div>
         <div class="road-char" id="roadChar">
@@ -549,34 +622,6 @@
       </div>
       <div class="road-labels"><span>시작</span><span id="roadPercent">0%</span><span><span class="wico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="12" r="4"/><circle cx="12.5" cy="12" r="4"/><path d="M8 5.5L10 3l2 2.5"/></svg></span> 결혼식</span></div>
     </div>
-
-    <div id="rmUpcoming"></div>
-
-    <div style="display:flex;justify-content:space-between;align-items:center;margin:20px 4px 10px;">
-      <div class="section-title" style="margin:0;">전체 일정</div>
-      <div style="display:flex;gap:6px;">
-        <button class="btn small view-btn active" data-view="timeline" id="viewTimelineBtn">타임라인</button>
-        <button class="btn small view-btn" data-view="calendar" id="viewCalendarBtn">달력</button>
-      </div>
-    </div>
-
-    <!-- Timeline view -->
-    <div id="rmTimeline" class="card" style="padding:20px 16px;"></div>
-
-    <!-- Calendar view -->
-    <div id="rmCalendar" style="display:none;">
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-          <button class="btn small" id="calPrev">◀</button>
-          <div style="font-size:15px;font-weight:900;" id="calTitle">-</div>
-          <button class="btn small" id="calNext">▶</button>
-        </div>
-        <div class="cal-grid" id="calGrid"></div>
-      </div>
-      <div id="calDayTasks"></div>
-    </div>
-
-    <button class="btn primary" id="addTaskBtn" style="margin-top:4px;">+ 일정 추가</button>
   </section>
 
   <!-- ============ ASSETS ============ -->
@@ -713,6 +758,17 @@
       <div class="card-sub" id="connStatus" style="margin-top:10px;"></div>
     </div>
 
+    <div class="section-title">내 이름</div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:14px;font-weight:700;">이 기기는 <span id="whoCurrent" style="color:var(--green-dark);">-</span> 기기예요</div>
+          <div class="card-sub">수정하면 이 이름으로 변경 기록이 남아요.</div>
+        </div>
+        <button class="btn small" id="changeWhoBtn">변경</button>
+      </div>
+    </div>
+
     <div class="section-title">데이터</div>
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -728,6 +784,17 @@
 </main>
 
 <div id="toast" class="toast"></div>
+
+<div class="who-overlay" id="whoOverlay">
+  <div class="who-card">
+    <div style="font-size:17px;font-weight:900;margin-bottom:6px;">누구세요?</div>
+    <div style="font-size:12.5px;color:var(--ink-2);margin-bottom:18px;">이 기기에서 수정하면 이 이름으로 기록돼요.<br>로그인이 아니라 이 폰에만 저장되는 설정이에요.</div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn who-btn me" data-who="도비">도비</button>
+      <button class="btn who-btn spouse" data-who="엥주">엥주</button>
+    </div>
+  </div>
+</div>
 
 <div class="celebrate-overlay" id="celebrateOverlay">
   <button class="celebrate-close" id="celebrateCloseBtn" aria-label="닫기"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
@@ -776,7 +843,13 @@ let S = {
   loan: {amount:19200, rate:2.0, years:20},
   wedding: {date:'2026-12-05', time:'15:40'},
   tasks: [],
+  changelog: [],
 };
+
+/* 사용자 식별 (로그인 아님 — 이 기기가 누구인지 로컬에만 저장) */
+let WHO = localStorage.getItem('wb_who') || '';
+let LAST_SEEN = Number(localStorage.getItem('wb_lastSeen') || 0);
+const CHANGELOG_MAX = 30;
 
 // 결혼식 D-day 기준 표준 준비 템플릿 (offset = 결혼식 며칠 전)
 const TASK_TEMPLATE = [
@@ -801,6 +874,29 @@ const TASK_TEMPLATE = [
 let saveTimer = null;
 
 const fmt = n => Math.round(n||0).toLocaleString('ko-KR') + '만원';
+
+/* ---- 변경 로그 ---- */
+let logDebounce = {};
+function logChange(key, summary){
+  // 같은 항목을 연타로 수정할 땐 마지막 것만 남기기 (디바운스)
+  clearTimeout(logDebounce[key]);
+  logDebounce[key] = setTimeout(()=>{
+    S.changelog.unshift({ts:Date.now(), who:WHO||'누군가', summary});
+    if(S.changelog.length>CHANGELOG_MAX) S.changelog.length = CHANGELOG_MAX;
+    renderChangeBanner();
+    persist();
+  }, 1200);
+}
+function timeAgo(ts){
+  const diff = Date.now()-ts;
+  const m = Math.floor(diff/60000);
+  if(m<1) return '방금';
+  if(m<60) return m+'분 전';
+  const h = Math.floor(m/60);
+  if(h<24) return h+'시간 전';
+  const d = Math.floor(h/24);
+  return d+'일 전';
+}
 const num = v => Number(v)||0;
 
 function defaultAssets(){
@@ -841,6 +937,7 @@ function ensureDefaults(){
   if(!S.wedding.date) S.wedding.date = '2026-12-05';
   if(!S.wedding.time) S.wedding.time = '15:40';
   if(!S.tasks) S.tasks = [];
+  if(!S.changelog) S.changelog = [];
   if(S.tasks.length===0){
     S.tasks = TASK_TEMPLATE.map((t,i)=>({id:'t'+i, name:t.name, offset:t.offset, date:'', done:false, memo:''}));
   }
@@ -972,7 +1069,9 @@ function renderAssetList(){
     `;
     row.querySelector('.info').addEventListener('click', ()=>{ editingIdx = editingIdx===i?null:i; renderAssetList(); });
     row.querySelector('input[type=checkbox]').addEventListener('change', e=>{
-      S.assets[i].include = e.target.checked; render(); persist();
+      S.assets[i].include = e.target.checked;
+      logChange('assetinc_'+i, `자산 ${S.assets[i].name} 집예산 ${e.target.checked?'포함':'제외'}`);
+      render(); persist();
     });
     el.appendChild(row);
 
@@ -993,7 +1092,10 @@ function renderAssetList(){
       panel.querySelectorAll('input,select').forEach(inp=>{
         inp.addEventListener('input', e=>{
           const f = e.target.dataset.f;
-          S.assets[i][f] = f==='amount' ? num(e.target.value) : e.target.value;
+          const oldV = S.assets[i][f];
+          const newV = f==='amount' ? num(e.target.value) : e.target.value;
+          S.assets[i][f] = newV;
+          if(f==='amount' && oldV!==newV) logChange('asset_'+i, `자산 ${S.assets[i].name} ${fmt(oldV)}→${fmt(newV)}`);
           persist();
         });
       });
@@ -1014,22 +1116,34 @@ document.getElementById('addAssetBtn').addEventListener('click', ()=>{
 });
 
 /* ---- static inputs binding ---- */
-function bindNum(id, get, set){
+function bindNum(id, get, set, label){
   const el = document.getElementById(id);
   el.value = get();
-  el.addEventListener('input', e=>{ set(num(e.target.value)); render(); persist(); });
+  el.addEventListener('input', e=>{
+    const oldV = get();
+    const newV = num(e.target.value);
+    set(newV);
+    if(label && oldV!==newV) logChange(id, `${label} ${fmt(oldV)}→${fmt(newV)}`);
+    render(); persist();
+  });
 }
 function initInputs(){
-  bindNum('houseCap', ()=>S.house.cap, v=>S.house.cap=v);
-  bindNum('houseRate', ()=>S.house.rate, v=>S.house.rate=v);
-  bindNum('houseReserve', ()=>S.house.reserve, v=>S.house.reserve=v);
-  bindNum('incMe', ()=>S.income.me, v=>S.income.me=v);
-  bindNum('incSpouse', ()=>S.income.spouse, v=>S.income.spouse=v);
-  bindNum('loanAmount', ()=>S.loan.amount, v=>S.loan.amount=v);
-  bindNum('loanYears', ()=>S.loan.years, v=>S.loan.years=v);
+  bindNum('houseCap', ()=>S.house.cap, v=>S.house.cap=v, '주택가격 상한');
+  bindNum('houseRate', ()=>S.house.rate, v=>S.house.rate=v, '지원 비율(%)');
+  bindNum('houseReserve', ()=>S.house.reserve, v=>S.house.reserve=v, '예비비');
+  bindNum('incMe', ()=>S.income.me, v=>S.income.me=v, '도비 소득');
+  bindNum('incSpouse', ()=>S.income.spouse, v=>S.income.spouse=v, '엥주 소득');
+  bindNum('loanAmount', ()=>S.loan.amount, v=>S.loan.amount=v, '대출 금액');
+  bindNum('loanYears', ()=>S.loan.years, v=>S.loan.years=v, '상환 기간(년)');
   const lr = document.getElementById('loanRate');
   lr.value = S.loan.rate;
-  lr.addEventListener('input', e=>{ S.loan.rate = Number(e.target.value)||0; render(); persist(); });
+  lr.addEventListener('input', e=>{
+    const oldV = S.loan.rate;
+    const newV = Number(e.target.value)||0;
+    S.loan.rate = newV;
+    if(oldV!==newV) logChange('loanRate', `대출 이자율 ${oldV}%→${newV}%`);
+    render(); persist();
+  });
 
   const sp = document.getElementById('spendInputs');
   sp.innerHTML = SPEND_CATS.map(cat=>`
@@ -1037,7 +1151,14 @@ function initInputs(){
     <div class="unit-wrap"><input type="number" data-spend="${cat}" value="${S.spend[cat]}" inputmode="numeric"><span class="unit">만원</span></div></div>
   `).join('');
   sp.querySelectorAll('[data-spend]').forEach(inp=>{
-    inp.addEventListener('input', e=>{ S.spend[e.target.dataset.spend]=num(e.target.value); render(); persist(); });
+    inp.addEventListener('input', e=>{
+      const cat = e.target.dataset.spend;
+      const oldV = num(S.spend[cat]);
+      const newV = num(e.target.value);
+      S.spend[cat]=newV;
+      if(oldV!==newV) logChange('spend_'+cat, `결혼지출 ${cat} ${fmt(oldV)}→${fmt(newV)}`);
+      render(); persist();
+    });
   });
 
   const fx = document.getElementById('fixedInputs');
@@ -1061,8 +1182,14 @@ function initInputs(){
   `).join('') + `<div class="inline-result"><span>카테고리 고정비 합계</span><b id="fixedCatTotal">0만원</b></div>`;
   fx.querySelectorAll('[data-fixed]').forEach(inp=>{
     inp.addEventListener('input', e=>{
-      S.fixed[e.target.dataset.fixed][e.target.dataset.who] = num(e.target.value);
-      renderFixedTotal(); render(); persist();
+      const key = e.target.dataset.fixed;
+      const who = e.target.dataset.who;
+      const catName = (FIXED_CATS.find(f=>f.key===key)||{}).name || key;
+      const whoName = who==='me'?'도비':'엥주';
+      const oldV = num(S.fixed[key][who]);
+      const newV = num(e.target.value);
+      S.fixed[key][who] = newV;
+      if(oldV!==newV) logChange('fixed_'+key+who, `고정비 ${catName}(${whoName}) ${fmt(oldV)}→${fmt(newV)}`);
       renderFixedTotal(); render(); persist();
     });
   });
@@ -1386,6 +1513,7 @@ function bindTaskEvents(scope){
       e.stopPropagation();
       const t = S.tasks.find(x=>x.id===dot.dataset.toggle);
       t.done = !t.done;
+      logChange('task_'+t.id, `일정 "${t.name}" ${t.done?'완료':'완료 취소'}`);
       renderRoadmap(); persist();
       if(t.done) checkCelebration();
     });
@@ -1502,6 +1630,79 @@ document.getElementById('addTaskBtn').addEventListener('click', ()=>{
   renderRoadmap(); persist();
 });
 
+/* ================= CHANGE BANNER ================= */
+let logExpanded = false;
+function renderChangeBanner(){
+  const banner = document.getElementById('changeBanner');
+  const list = document.getElementById('changeLogList');
+  if(!banner) return;
+
+  // 상대방이 내가 마지막으로 본 이후 수정한 것
+  const unseen = S.changelog.filter(c=>c.ts>LAST_SEEN && c.who!==WHO);
+  if(unseen.length===0 && !logExpanded){
+    banner.innerHTML = '';
+    list.style.display='none';
+    return;
+  }
+
+  if(!logExpanded){
+    const latest = unseen[0];
+    banner.innerHTML = `<div class="change-banner" id="cbOpen">
+      <span class="cb-count">${unseen.length}</span>
+      <span>${latest.who}가 ${timeAgo(latest.ts)} 수정했어요 — 탭해서 확인</span>
+    </div>`;
+    list.style.display='none';
+    document.getElementById('cbOpen').addEventListener('click', ()=>{
+      logExpanded = true;
+      renderChangeBanner();
+    });
+  } else {
+    banner.innerHTML = `<div class="change-banner" id="cbClose" style="border-left-color:var(--ink-3);">
+      <span>최근 변경 내역</span>
+      <span style="margin-left:auto;font-size:11.5px;color:var(--ink-3);">닫으면 확인 처리돼요</span>
+    </div>`;
+    const items = S.changelog.slice(0,CHANGELOG_MAX).map(c=>{
+      const cls = c.who==='도비'?'me':'spouse';
+      return `<div class="change-log-item">
+        <span class="who-tag ${cls}">${c.who}</span>
+        <span>${c.summary}</span>
+        <span class="cl-time">${timeAgo(c.ts)}</span>
+      </div>`;
+    }).join('');
+    list.innerHTML = `<div class="card" style="padding:8px 18px;">${items || '<div class="card-sub" style="padding:8px 0;">아직 변경 내역이 없어요.</div>'}</div>`;
+    list.style.display='block';
+    document.getElementById('cbClose').addEventListener('click', ()=>{
+      logExpanded = false;
+      LAST_SEEN = Date.now();
+      localStorage.setItem('wb_lastSeen', LAST_SEEN);
+      renderChangeBanner();
+    });
+  }
+}
+
+/* ================= WHO SELECTION ================= */
+function initWho(){
+  if(!WHO){
+    document.getElementById('whoOverlay').classList.add('show');
+  }
+  const cur = document.getElementById('whoCurrent');
+  if(cur) cur.textContent = WHO || '미설정';
+  document.querySelectorAll('.who-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      WHO = btn.dataset.who;
+      localStorage.setItem('wb_who', WHO);
+      document.getElementById('whoOverlay').classList.remove('show');
+      const el = document.getElementById('whoCurrent');
+      if(el) el.textContent = WHO;
+    });
+  });
+  const chg = document.getElementById('changeWhoBtn');
+  if(chg) chg.addEventListener('click', ()=>{
+    document.getElementById('whoOverlay').classList.add('show');
+  });
+}
+initWho();
+
 /* ================= TABS ================= */
 function goTab(name){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
@@ -1544,6 +1745,7 @@ async function loadFromSheet(){
   ensureDefaults();
   initInputs();
   render();
+  renderChangeBanner();
 }
 
 function persist(){
@@ -1586,7 +1788,7 @@ document.getElementById('connectBtn').addEventListener('click', ()=>{
 document.getElementById('resetBtn').addEventListener('click', ()=>{
   if(confirm('이 기기에 저장된 데이터를 초기화할까요? 구글시트 데이터는 유지돼요.')){
     localStorage.removeItem('wb_state');
-    S = {assets:defaultAssets(), house:{cap:24000,rate:80,reserve:400}, spend:{}, income:{me:0,spouse:0}, fixed:{}, fixedEtc:[], loan:{amount:19200,rate:2.0,years:20}};
+    S = {assets:defaultAssets(), house:{cap:24000,rate:80,reserve:400}, spend:{}, income:{me:0,spouse:0}, fixed:{}, fixedEtc:[], loan:{amount:19200,rate:2.0,years:20}, changelog:[]};
     ensureDefaults(); initInputs(); render(); persist();
   }
 });
